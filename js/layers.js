@@ -1,517 +1,603 @@
-addLayer("p", {
-    name: "prestige", // This is optional, only used in a few places, If absent it just uses the layer id.
-    symbol: "P", // This appears on the layer's node. Default is the id with the first letter capitalized
-    position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
-    startData() { return {
-        unlocked: true,
-		points: new Decimal(0),
-    }},
-    color: "#4BDC13",
-    requires: new Decimal(10), // Can be a function that takes requirement increases into account
-    resource: "prestige points", // Name of prestige currency
-    baseResource: "points", // Name of resource prestige is based on
-    baseAmount() {return player.points}, // Get the current amount of baseResource
-    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
-    exponent: 0.5, // Prestige currency exponent
-    gainMult() { // Calculate the multiplier for main currency from bonuses
-        mult = new Decimal(1)
-        if (hasUpgrade('p', 13)) mult = mult.times(upgradeEffect('p', 13))
-        if (hasMilestone('p', 1)) mult = mult.times(3)
-        if (hasUpgrade('r', 11)) mult = mult.times(2)
-        if (hasUpgrade('p', 14)) mult = mult.pow(1.1)
-        if (hasMilestone('d', 0)) mult = mult.times(5)
-        if (hasMilestone('d', 3)) mult = mult.times(5)
-        if (hasMilestone('d', 6)) mult = mult.pow(1.25)
-        if (hasMilestone('d', 8)) mult = mult.pow(2.5)
-        return mult
-    },
-    gainExp() { // Calculate the exponent on main currency from bonuses
-        return new Decimal(1)
-    },
-    row: 0, // Row the layer is in on the tree (0 is the first row)
-    hotkeys: [
-        {key: "p", description: "P: Reset for prestige points", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
-    ],
-    layerShown(){return true},
-
-    upgrades: {
-        11: {
-            title: "Prestige Upgrade 1",
-            description: "2x Point gain :0",
-            cost: new Decimal(1),
-        },
-        12: {
-            title: "Prestige Upgrade 2",
-            description: "Prestige points boost point gain",
-            cost: new Decimal(5),  
-
-            effect() {
-              return player[this.layer].points.add(1).pow(0.2)
-            },
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, 
-        },
-
-        13: {
-            title: "Prestige Upgrade 3",
-            description: "Points boost prestige point gain",
-            cost: new Decimal(10),
-
-            effect() {
-              return player.points.add(1).pow(0.5)
-            },
-
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, 
-        },
-
-        14: {
-            title: "Prestige Upgrade 4",
-            description: "10x Points, ^1.1 PP",
-            cost: new Decimal(3e23),
-            unlocked() { return hasUpgrade('r', 16) },
-        }
-    },
-
-    milestones:
-    {
-        0: {
-            requirementDescription: "50 Prestige Points",
-            effectDescription: "10x Point gain",
-            done() { return player[this.layer].points.gte(50) }
-        },
-
-        1: {
-            requirementDescription: "200 Prestige Points",
-            effectDescription: "3x Prestige Point gain",
-            done() { return player[this.layer].points.gte(200) }
-        },
-
-        2: {
-            requirementDescription: "5000 Prestige Points",
-            effectDescription: "Unlock Rebirth",
-            done() { return player[this.layer].points.gte(5000) }
-        }
-    },
-
-    doReset(layer) {
-       if(layers[layer].row <= layers[this.layer].row || layers[layer].row == "side")return;
-
-       let keep = []
-       if (hasMilestone('d', 4)) keep.push("upgrades")
-       if (hasMilestone('o', 6)) keep.push("upgrades")
-
-       layerDataReset(this.layer, keep)
-    },
-
-    passiveGeneration() {
-        let p = new Decimal(0)
-        if (hasMilestone('o', 1)) p = p.add(1)
-        return p
-    }
-})
-
-addLayer("r", {
+addLayer("ach", {
     startData() { return {                  // startData is a function that returns default data for a layer. 
-        unlocked: false,                     // You can add more variables here to add them to your layer.
+        unlocked: true,                     // You can add more variables here to add them to your layer.
         points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
     }},
 
-    branches: ["p"],
+    color: "#fff700",                       // The color for this layer, which affects many elements.
+    resource: "???",            // The name of this layer's main prestige resource.
+    row: "side",                                 // The row this layer is on (0 is the first row).
 
-    color: "#cf13dc",                       // The color for this layer, which affects many elements.
-    resource: "rebirth points",            // The name of this layer's main prestige resource.
-    row: 1,                                 // The row this layer is on (0 is the first row).
+    baseResource: "points",                 // The name of the resource your prestige gain is based on.
+    baseAmount() { return player.points },  // A function to return the current amount of baseResource.
 
-    baseResource: "prestige points",                 // The name of the resource your prestige gain is based on.
-    baseAmount() { return player.p.points },  // A function to return the current amount of baseResource.
-
-    requires: new Decimal(10000),              // The amount of the base needed to  gain 1 of the prestige currency.
+    requires: new Decimal(10),              // The amount of the base needed to  gain 1 of the prestige currency.
                                             // Also the amount required to unlock the layer.
 
     type: "normal",                         // Determines the formula used for calculating prestige currency.
     exponent: 0.5,                          // "normal" prestige gain is (currency^exponent).
 
     gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
-        mult = new Decimal(1)
-        if (hasUpgrade('r', 14)) mult = mult.times(3)
-        if (hasMilestone('d', 0)) mult = mult.times(5)
-        if (hasMilestone('d', 3)) mult = mult.times(5)
-        if (hasMilestone('d', 6)) mult = mult.pow(1.25)
-        if (hasMilestone('d', 8)) mult = mult.pow(2.5)
-        return mult
+        return new Decimal(1)               // Factor in any bonuses multiplying gain here.
     },
-    gainExp() {                             // Returns the exponent to your gain of the prestige resource.
-        exp = new Decimal(1)
-        if (hasMilestone('d', 2)) exp = exp.add(0.1)
+    gainExp() {             
+        let exp = new Decimal(1)                // Returns the exponent to your gain of the prestige resource.
+
         return exp
     },
 
-    layerShown() { return hasMilestone('p', 2) || player.r.unlocked }, // Returns a bool for if this layer's node should be visible in the tree.
+    layerShown() { return true },          // Returns a bool for if this layer's node should be visible in the tree.
+
+    tabFormat: {
+        "Achievements":
+        {
+            content: ["achievements"],
+        }
+    },
+
+    achievements: {
+        11: {
+            name: "small",
+            done() { return player.points.gte(10) },
+            tooltip: "Reach 10 points.",
+            unlocked() { return true }, 
+        },
+
+        12: {
+            name: "3 digits",
+            done() { return player.points.gte(100) && hasAchievement("ach", 11) },
+            tooltip: "Reach 100 points.",
+            unlocked() { return hasAchievement("ach", 11) },
+        },
+
+        13: {
+            name: "Reset?",
+            done() { return player.bp.points.gte(1) && hasAchievement("ach", 12) },
+            tooltip: "Reach 1 basic prestige point.",
+            unlocked() { return hasAchievement("ach", 12) },
+        },
+
+        14: {
+            name: "Points now are a bit useful?",
+            done() { return hasUpgrade("bp", 14) && hasAchievement("ach", 13) },
+            tooltip: "Buy basic prestige upgrade 4",
+            unlocked() { return hasAchievement("ach", 13) },
+        },
+
+        15: {
+            name: "Very, very Useful",
+            done() { return hasUpgrade("bp", 16) && hasAchievement("ach", 14) },
+            tooltip: "Buy basic prestige upgrade 6",
+            unlocked() { return hasAchievement("ach", 14) },
+        },
+
+        16: {
+            name: "Closer...",
+            done() { return player.points.gte(1000) && hasAchievement("ach", 15) },
+            tooltip: "Get 1000 Points",
+            unlocked() { return hasAchievement("ach", 15) }
+        },
+
+        17: {
+            name: "Upgraded Points",
+            done() { return hasUpgrade("bp", 18) && hasAchievement("ach", 16) },
+            tooltip: "Buy Basic Prestige Upgrade 8",
+            unlocked() { return hasAchievement("ach", 16) }
+        },
+
+        18: {
+            name: "New layer!",
+            done() { return hasMilestone("pr", 0) },
+            tooltip: "Unlock Basic Rebirth",
+            unlocked() { return hasAchievement("ach", 17) }
+        },
+
+        19: {
+            name: "Two of them",
+            done() { return player.pr.points.gte(2) },
+            tooltip: "Get 2 progression points",
+            unlocked() { return hasAchievement("ach", 18) }
+        },
+
+        21: {
+            name: "is it big?",
+            done() { return player.points.gte(1e9) },
+            tooltip: "get 1e9 points",
+            unlocked() { return hasAchievement("ach", 19) }
+        },
+
+        22: {
+            name: "Ascensions?",
+            done() { return player.pr.points.gte(3) },
+            tooltip: "get 3 progression points",
+            unlocked() { return hasAchievement("ach", 21) }
+        },
+
+        23: {
+            name: "Getting there",
+            done() { return player.a.points.gte(5) },
+            tooltip: "Get 5 Ascension points",
+            unlocked() { return hasAchievement("ach", 22) }
+        },
+
+        24: {
+            name: "Ultra now",
+            done() { return player.up.points.gte(1) },
+            tooltip: "Get 1 Ultra Point",
+            unlocked() { return hasAchievement("ach", 23) }
+        }
+    }
+})
+
+addLayer("pr", {
+    startData() { return {                  // startData is a function that returns default data for a layer. 
+        unlocked: true,                     // You can add more variables here to add them to your layer.
+        points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+    }},
+
+    color: "#9500ff",      
+    resource: "progression points",            // The name of this layer's main prestige resource.
+    row: 999999,
+    baseResource: "points",                 // The name of the resource your prestige gain is based on.
+    baseAmount() { return player.points },  // A function to return the current amount of baseResource.
+
+    requires: new Decimal(1e5),              // The amount of the base needed to  gain 1 of the prestige currency.
+    type: "static",
+    exponent: 5,
+
+    milestones: {
+        0: {
+            requirementDescription: "1 progression point",
+            effectDescription: "Unlock basic Rebirth",
+            done() { return player[this.layer].points.gte(1) },
+        },
+
+        1: {
+            requirementDescription: "3 progression points",
+            effectDescription: "Unlock Ascensions",
+            done() { return player[this.layer].points.gte(3) },
+            unlocked() { return hasMilestone("pr", 0) }
+        },
+
+        2: {
+            requirementDescription: "4 progression points",
+            effectDescription: "Unlock Ultra Points",
+            done() { return player[this.layer].points.gte(4) },
+            unlocked() { return hasMilestone("pr", 1) }
+        }
+    }
+})                            
+
+addLayer("bp", {
+    startData() { return {                  // startData is a function that returns default data for a layer. 
+        unlocked: true,                     // You can add more variables here to add them to your layer.
+        points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+    }},
+
+    color: "#04b4ff",                       // The color for this layer, which affects many elements.
+    resource: "basic prestige points",            // The name of this layer's main prestige resource.
+    row: 0,   
+    symbol: "BP",                              
+
+    baseResource: "points",                 // The name of the resource your prestige gain is based on.
+    baseAmount() { return player.points },  // A function to return the current amount of baseResource.
+
+    requires: new Decimal(10),              // The amount of the base needed to  gain 1 of the prestige currency.
+                                            // Also the amount required to unlock the layer.
+
+    type: "normal",                         // Determines the formula used for calculating prestige currency.
+    exponent: 0.8,                          // "normal" prestige gain is (currency^exponent).
+
+    gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+        let mult = new Decimal(1) 
+        if (hasUpgrade("bp", 15)) mult = mult.times(1.5)
+        if (hasUpgrade("bp", 16)) mult = mult.times(upgradeEffect("bp", 16))
+        if (hasUpgrade("bp", 19)) mult = mult.times(3)
+        if (hasUpgrade("br", 12)) mult = mult.times(4)
+        if (hasMilestone("a", 0)) mult = mult.times(3)
+        if (hasMilestone("a", 6)) mult = mult.times(8)
+        return mult
+    },
+    gainExp() {                             // Returns your exponent to your gain of the prestige resource.
+        return new Decimal(1)
+    },
+
+    layerShown() { return true },           // Returns a bool for if this layer's node should be visible in the tree.
 
     upgrades: {
         11: {
-            title: "Rebirth Upgrade 1",
-            description: "2x Points and PP",
+            title: "Maybe Useless",
+            description: "Gain 1 extra point per second.",
             cost: new Decimal(1),
         },
 
         12: {
-            title: "Rebirth Upgrade 2",
-            description: "Rebirth points boost Points gain",
+            title: "Still as Useless as the other one",
+            description: "+0.5 points per second",
             cost: new Decimal(2),
-
-            effect() {
-              return player[this.layer].points.add(1).pow(0.8)
-            },
-
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+            unlocked() { return hasUpgrade("bp", 11) },
         },
 
         13: {
-            title: "Rebirth Upgrade 3",
-            description: "^1.3 Point gain",
-            cost: new Decimal(10),
+            title: "an useful one",
+            description: "2x Points",
+            cost: new Decimal(4),
+            unlocked() { return hasUpgrade("bp", 12) },
         },
 
         14: {
-            title: "Rebirth Upgrade 4",
-            description: "3x Rebirth Point gain",
-            cost: new Decimal(25),
+            title: "Synergy I",
+            description: "Points boost themselves",
+            cost: new Decimal(10),
+            unlocked() { return hasUpgrade("bp", 13) },
+            
+            effect() {
+                return player.points.add(1).pow(0.1)
+            },
+
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
 
         15: {
-            title: "Rebirth Upgrade 5",
-            description: "Points boost themselves",
-            cost: new Decimal(100),
-
-            effect() {
-              return player.points.add(1).pow(0.2)
-            },
-
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+            title: "Boosting Basic Points",
+            description: "1.5x basic prestige gain",
+            cost: new Decimal(20),
+            unlocked() { return hasUpgrade("bp", 14) },
         },
 
         16: {
-            title: "Rebirth Upgrade 6",
-            description: "Unlock more PP upgrades",
-            cost: new Decimal(1.5e10),
+            title: "Synergy II",
+            description: "Points boost basic prestige points",
+            cost: new Decimal(25),
+            unlocked() { return hasUpgrade("bp", 15) },
+
+            row: 0,
+            column: 1,
+            
+            effect() {
+                return player.points.add(1).pow(0.05)
+            },
+
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
 
         17: {
-            title: "Rebirth Upgrade 7",
-            description: "Unlock Rebirth Milestones",
-            cost: new Decimal(2e15),
+            title: "Better Points",
+            description: "Boost your points by 3x",
+            cost: new Decimal(35),
+            unlocked() { return hasUpgrade("bp", 16) },
+        },
+
+        18: {
+            title: "Better Synergy I",
+            description: "Points boost themselves better",
+            cost: new Decimal(50),
+            unlocked() { return hasUpgrade("bp", 17) },
+
+            effect() {
+                return player.points.add(1).pow(0.2)
+            },
+
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }
+        },
+
+        19: {
+            title: "Double",
+            description: "3x Basic Prestige gain and 4x Point gain",
+            cost: new Decimal(75),
+            unlocked() { return hasUpgrade("bp", 18) },
+        },
+
+        21: {
+            title: "Synergy III",
+            description: "Basic Prestige boost Points gain",
+            cost: new Decimal(1000),
+            unlocked() { return hasUpgrade("bp", 19) },
+
+            effect() {
+                return player[this.layer].points.add(1).pow(0.25)
+            },
+
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }
+        },
+
+        22: {
+            title: "Final boost",
+            description: "10x Point gain",
+            cost: new Decimal(20000),
+            unlocked() { return hasUpgrade("bp", 21) }
         }
     },
 
-    milestones: {
-        0: {
-            requirementDescription: "1e16 Rebirth Points",
-            effectDescription: "^1.5 Points lol",
-            done() { return player[this.layer].points.gte(1e16) && hasUpgrade('r', 17) },
-            unlocked() { return hasUpgrade('r', 17) },
-        },
+    autoUpgrade() { return hasMilestone("a", 1) },
+
+    passiveGeneration() {
+        let p = new Decimal(0)
+        if (hasMilestone("a", 2)) p = p.add(1)
+        return p
+    }
+})
+
+addLayer("br", {
+    startData() { return {
+        unlocked: false,
+        points: new Decimal(0),
+    }},
+
+    color: "#ff00fb",
+    resource: "Basic Rebirth Points",
+    row: 1,
+    symbol: "BR",
+
+    branches: ["bp"],
+
+    baseResource: "basic prestige points",
+    baseAmount() { return player.bp.points },
+    
+    requires: new Decimal(1000000),
+    
+    type: "normal",
+    exponent: 0.8,
+
+    gainMult() {
+        let mult = new Decimal(1)
+        if (hasUpgrade("br", 15)) mult = mult.times(5)
+        if (hasMilestone("a", 0)) mult = mult.times(3)
+        if (hasMilestone("a", 2)) mult = mult.times(10)
+        if (hasMilestone("a", 3)) mult = mult.times(3)
+        if (hasMilestone("a", 4)) mult = mult.pow(1.1)
+        if (hasUpgrade("br", 17)) mult = mult.times(5)
+        if (hasUpgrade("br", 18)) mult = mult.times(10)
+        if (hasMilestone("a", 5)) mult = mult.pow(1.1)
+        if (inChallenge("a", 12)) mult = mult.times(0)
+        if (hasChallenge("a", 12)) mult = mult.pow(1.05)
+        return mult
     },
 
-    unlocked() { let Unlocked = false
-        if (player.p.points.gte(5000)) Unlocked = true
+    gainExp() {
+        let exp = new Decimal(1)
 
-        return Unlocked 
+        return exp
+    },
 
-    }, // The layer is unlocked when the player reaches the 3rd milestone of the prestige layer.
+    unlocked() { return hasMilestone("pr", 0) },
+    layerShown() { return hasMilestone("pr", 0) || player.br.unlocked },
 
-    doReset(layer) {
-       if(layers[layer].row <= layers[this.layer].row || layers[layer].row == "side")return;
+    upgrades: {
+        11: {
+            title: "Rebirth begginer pack!",
+            description: "3x Points",
+            cost: new Decimal(1)
+        },
 
-       let keep = []
-       if (hasUpgrade('d', 13)) keep.push("upgrades")
-       if (hasMilestone('o', 6)) keep.push("upgrades")
+        12: {
+            title: "Super Basic Prestige boost",
+            description: "4x Basic Prestige gain",
+            cost: new Decimal(2),
+            unlocked() { return hasUpgrade("br", 11) }
+        },
 
-       layerDataReset(this.layer, keep)
+        13: {
+            title: "More Points...",
+            description: "5x Points",
+            cost: new Decimal(5),
+            unlocked() { return hasUpgrade("br", 12) }
+        },
+
+        14: {
+            title: "Synergy IV",
+            description: "Basic Rebirth boost Point gain",
+            cost: new Decimal(20),
+            unlocked() { return hasUpgrade("br", 13) },
+
+            effect() {
+                return player[this.layer].points.add(1).pow(0.35)
+            },
+
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }
+        },
+
+        15: {
+            title: "Great boost",
+            description: "5x Rebirth Points",
+            cost: new Decimal(1500),
+            unlocked() { return hasUpgrade("br", 14) }
+        },
+
+        16: {
+            title: "Mega Boost on Points",
+            description: "Boost your point gain by 6x",
+            cost: new Decimal(5e5),
+            unlocked() { return hasUpgrade("br", 15) }
+        },
+
+        17: {
+            title: "Still more?",
+            description: "5x Basic Rebirth points",
+            cost: new Decimal(1e15),
+            unlocked() { return hasMilestone("a", 4) }
+        },
+
+        18: {
+            title: "More Basic Rebirth",
+            description: "10x Basic Rebirth points",
+            cost: new Decimal(1e18),
+            unlocked() { return hasUpgrade("br", 17) },
+        },
+
+        19: {
+            title: "6th Ascension",
+            description: "15x Basic Rebirth points",
+            cost: new Decimal(5e20),
+            unlocked() { return hasUpgrade("br", 18) }
+        }
     },
 
     passiveGeneration() {
         let p = new Decimal(0)
-        if (hasMilestone('o', 1)) p = p.add(1)
+        if (hasMilestone("a", 5)) p = p.add(1)
         return p
     }
-}),
+})
 
-addLayer("d", {
+addLayer("a", {
     startData() { return {                  // startData is a function that returns default data for a layer. 
         unlocked: false,                     // You can add more variables here to add them to your layer.
         points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
     }},
 
-    doReset(layer) {
-       if(layers[layer].row <= layers[this.layer].row || layers[layer].row == "side")return;
-       
-       let keep = []
-       let keepMilestones = []
+    color: "#f6ff00",                       // The color for this layer, which affects many elements.
+    resource: "ascension points",            // The name of this layer's main prestige resource.
+    row: 2,                                 // The row this layer is on (0 is the first row).
 
-       if (hasMilestone('o', 3)) keepMilestones.push(5)
-       if (hasMilestone('o', 4)) keep.push("challenges")
+    branches: ["br"],
 
-       keep.push(keepMilestones) 
+    baseResource: "Basic Rebirth points",                 // The name of the resource your prestige gain is based on.
+    baseAmount() { return player.br.points },  // A function to return the current amount of baseResource.
 
-       layerDataReset(this.layer, keep)
-    },
-
-    branches: ["r"],
-
-    color: "#ffffff",                       // The color for this layer, which affects many elements.
-    resource: "divine points",            // The name of this layer's main prestige resource.
-    row: 3,                                 // The row this layer is on (0 is the first row).
-
-    baseResource: "points",                 // The name of the resource your prestige gain is based on.
-    baseAmount() { return player.points },  // A function to return the current amount of baseResource.
-
-    requires: new Decimal("1e1000"),              // The amount of the base needed to  gain 1 of the prestige currency.
+    requires: new Decimal(1e6),              // The amount of the base needed to  gain 1 of the prestige currency.
                                             // Also the amount required to unlock the layer.
 
     type: "static",                         // Determines the formula used for calculating prestige currency.
-    exponent: 15,                          // "normal" prestige gain is (currency^exponent).
+    exponent: 2.5,                          // "normal" prestige gain is (currency^exponent).
 
     gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
-        let mult = new Decimal(1)
-        return mult
+        return new Decimal(1)               // Factor in any bonuses multiplying gain here.
     },
     gainExp() {                             // Returns the exponent to your gain of the prestige resource.
         return new Decimal(1)
     },
 
-    layerShown() { return player.points.gte("1e1000") || player.d.unlocked },  // Returns a bool for if this layer's node should be visible in the tree.
-    
+    layerShown() { return hasMilestone("pr", 1) || player.a.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+
     milestones: {
         0: {
-            requirementDescription: "1 Divine Point",
-            effectDescription: "5x Everything before divine",
+            requirementDescription: "1 Ascension Point",
+            effectDescription: "3x Point gain, Basic Prestige and Basic Rebirth",
             done() { return player[this.layer].points.gte(1) }
         },
 
         1: {
-            requirementDescription: "2 Divine Points",
-            effectDescription: "^1.5 Point gain",
+            requirementDescription: "2 Ascension Points",
+            effectDescription: "Automate Prestige Upgrades",
             done() { return player[this.layer].points.gte(2) }
         },
 
         2: {
-            requirementDescription: "3 Divine Points",
-            effectDescription: "+^0.1 to RP exponent",
+            requirementDescription: "3 Ascension Points",
+            effectDescription: "10x Basic Rebirth Points and passively gain 100% of your Basic Prestige points per second",
             done() { return player[this.layer].points.gte(3) }
         },
 
         3: {
-            requirementDescription: "5 Divine Points",
-            effectDescription: "Unlock Challenges Tab and ^1.5 Points, also 5x Prestige and Rebirth",
-            done() { return player[this.layer].points.gte(5) }
+            requirementDescription: "4 Ascension Points",
+            effectDescription: "^1.01 Points, 3x Basic Rebirth Points",
+            done() { return player[this.layer].points.gte(4) }
         },
 
         4: {
-            requirementDescription: "8 Divine Points",
-            effectDescription: "Keep Prestige Upgrades",
-            done() { return player[this.layer].points.gte(8) },
-            unlocked() { return hasMilestone('d', 3) },
+            requirementDescription: "5 Ascension Points",
+            effectDescription: "^1.1 Basic Rebirth points and unlock more Basic Rebirth upgrades",
+            done() { return player[this.layer].points.gte(5) },
+            unlocked() { return hasMilestone("a", 3) }
         },
 
         5: {
-            requirementDescription: "10 Divine Points",
-            effectDescription: "^2 Points :)",
-            done() { return player[this.layer].points.gte(10) },
-            unlocked() { return hasMilestone('d', 4) },
+            requirementDescription: "6 Ascension Points",
+            effectDescription: "^1.1 Basic Rebirth Points and Points, gain passively 100% of Basic Rebirth Points per second",
+            done() { return player[this.layer].points.gte(6) },
+            unlocked() { return hasMilestone("a", 4) }
         },
 
         6: {
-            requirementDescription: "15 Divine Points",
-            effectDescription: "^1.25 Prestige, Rebirth and ^1.3 Points",
-            done() { return player[this.layer].points.gte(15) },
-            unlocked() { return hasMilestone('d', 5) },
+            requirementDescription: "7 Ascension Points",
+            effectDescription: "^1.1 Points (again) and 8x Basic Prestige Points",
+            done() { return player[this.layer].points.gte(7)},
+            unlocked() { return hasMilestone("a", 5) }
         },
 
         7: {
-            requirementDescription: "25 Divine Points",
-            effectDescription: "Ok, ^10 Points",
-            done() { return player[this.layer].points.gte(25) },
-            unlocked() { return hasMilestone('d', 6) },
-        },
-
-        8: {
-            requirementDescription: "30 Divine Points",
-            effectDescription: "^2.5 Rebirth and Prestige, ^3 Points",
-            done() { return player[this.layer].points.gte(30) },
-            unlocked() { return hasMilestone('d', 7) },
-        },
-
-        9: {
-            requirementDescription: "100 Divine Points",
-            effectDescription: "Unlock a new reset layer",
-            done() { return player[this.layer].points.gte(100) && hasUpgrade('d', 14) },
-            unlocked() { return hasUpgrade('d', 14) }
+            requirementDescription: "9 Ascension Points",
+            effectDescription: "Unlock Challenges Tab",
+            done() { return player[this.layer].points.gte(9) },
+            unlocked() { return hasMilestone("a", 6) }
         }
     },
 
     tabFormat: {
         "Milestones": {
-            content: ["main-display","prestige-button","blank","milestones"]
-        },
-
-        "Upgrades": {
-            content: ["main-display","blank","upgrades"],
-            unlocked() {return hasChallenge('d', 11) },
+            content: ["main-display","prestige-button","blank", 
+            ["display-text", function() {
+                return "You have " + format(player.br.points) + " Basic Rebirth Points"
+            } ], "blank", "milestones"]
         },
 
         "Challenges": {
-            content: ["main-display","blank","challenges"],
-            unlocked() { return hasMilestone('d', 3) },
+            content: ["challenges"],
+            unlocked() { return hasMilestone("a", 7) }
         }
     },
 
     challenges: {
         11: {
-            name: "Points are decaying",
-            challengeDescription: "^0.01 Points",
-            goalDescription: "e500000 Points",
-            rewardDescription: "Unlock Upgrades Tab",
+            name: "Bad Points",
+            challengeDescription: "Your points are divied by 6",
+            goalDescription: "Reach 1e80 Points",
+            rewardDescription: "Multiply your points by 10",
             completionLimit: 1,
-            canComplete() { return player.points.gte("e500000") },
-            unlocked() { return hasMilestone('d', 3) },
-        },
-    },
 
-    upgrades: {
-        11: {
-            title: "Divine Upgrade 1",
-            description: "^^1.1 Point gain",
-            cost: new Decimal(30),
+            canComplete() { return player.points.gte(1e80) }
         },
+
         12: {
-            title: "Divine Upgrade 2",
-            description: "Divine points boost point gain",
-            cost: new Decimal(60),
+            name: "No Basic Rebirth",
+            challengeDescription: "You cant gain any Basic Rebirth points",
+            goalDescription: "Get 1e25 Points",
+            rewardDescription: "^1.05 Basic Rebirth points",
+            completionLimit: 1,
 
-            effect() {
-              return player[this.layer].points.add(1).pow(1e90)
-            },
-
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
-        },
-        13: {
-            title: "Divine Upgrade 3",
-            description: "Keep Rebirth Upgrades on divine reset",
-            cost: new Decimal(100),
-            unlocked() { return hasUpgrade('d', 12) },
-        },
-        14: {
-            title: "Divine Upgrade 4",
-            description: "Unlock last divine milestone",
-            cost: new Decimal(100),
-            unlocked() { return hasUpgrade('d', 13) },
+            canComplete() { return player.points.gte(1e25) },
+            unlocked() { return hasChallenge("a", 11) }
         }
     },
 
-    passiveGeneration() {
-        let p = new Decimal(0)
-        if (hasMilestone('o', 0)) p = p.add(1)
-        if (hasMilestone('o', 1)) p = p.add(9)
-        if (hasMilestone('o', 5)) p = p.add(10)
-        return p
-    },
+    unlocked() { return hasMilestone("pr", 1) },
 
-    unlocked() { return player.points.gte("1e1000") }, // The layer is unlocked when the player reaches 1e1000 points.
 })
 
-addLayer("o", {
+addLayer("up", {
     startData() { return {                  // startData is a function that returns default data for a layer. 
         unlocked: false,                     // You can add more variables here to add them to your layer.
         points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
     }},
 
-    branches: ["d"],
+    color: "#ffbb00",                       // The color for this layer, which affects many elements.
+    resource: "Ultra points",            // The name of this layer's main prestige resource.
+    row: 2,                                 // The row this layer is on (0 is the first row).
+    symbol: "UP",
 
-    color: "#024eff",                       // The color for this layer, which affects many elements.
-    resource: "omega points",            // The name of this layer's main prestige resource.
-    row: 4,                                 // The row this layer is on (0 is the first row).
+    branches: ["br"],
 
-    baseResource: "divine points",                 // The name of the resource your prestige gain is based on.
-    baseAmount() { return player.d.points },  // A function to return the current amount of baseResource.
+    baseResource: "points",                 // The name of the resource your prestige gain is based on.
+    baseAmount() { return player.points },  // A function to return the current amount of baseResource.
 
-    requires: new Decimal("100"),              // The amount of the base needed to  gain 1 of the prestige currency.
+    requires: new Decimal(1e100),              // The amount of the base needed to  gain 1 of the prestige currency.
                                             // Also the amount required to unlock the layer.
 
     type: "normal",                         // Determines the formula used for calculating prestige currency.
-    exponent: 0.5,                          // "normal" prestige gain is (currency^exponent).
+    exponent: 0.1,                          // "normal" prestige gain is (currency^exponent).
 
     gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
-        let mult = new Decimal(1)
-        if (hasMilestone('o', 5)) mult = mult.times(1.1)
-        if (hasMilestone('o', 6)) mult = mult.times(5)
-        return mult                            // Factor in any bonuses multiplying gain here.
+        return new Decimal(1)               // Factor in any bonuses multiplying gain here.
     },
     gainExp() {                             // Returns the exponent to your gain of the prestige resource.
         return new Decimal(1)
     },
 
-    layerShown() { return hasMilestone('d', 9) || player.o.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+    unlocked() { return hasMilestone("pr", 2) },
+    layerShown() { return hasMilestone("pr", 2) || player.up.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
 
-    tabFormat: {
-        "Milestones": {
-            content: ["main-display","prestige-button","blank","milestones"]
-        },
+    upgrades: {
+        // Look in the upgrades docs to see what goes here!
     },
-
-    milestones: {
-        0: {
-            requirementDescription: "1 Omega Point",
-            effectDescription: "Passively gain 100% of your divine points per second",
-            done() { return player[this.layer].points.gte(1) }
-        },
-
-        1: {
-            requirementDescription: "5 Omega Points",
-            effectDescription: "Passively gain 100% of your Prestige and Rebirth points per second, also +900% divine point passive gain",
-            done() { return player[this.layer].points.gte(5) }
-        },
-
-        2: {
-            requirementDescription: "8 Omega Points",
-            effectDescription: "^^1.5 Points",
-            done() { return player[this.layer].points.gte(8) }
-        },
-
-        3: {
-            requirementDescription: "10 Omega Points",
-            effectDescription: "Keep 5 divine milestones on omega reset",
-            done() { return player[this.layer].points.gte(10) },
-            unlocked() { return hasMilestone('o', 2) },
-        },
-
-        4: {
-            requirementDescription: "15 Omega Points",
-            effectDescription: "Keep all divine challenges on omega reset",
-            done() { return player[this.layer].points.gte(15) },
-            unlocked() { return hasMilestone('o', 3) },
-        },
-
-        5: {
-            requirementDescription: "25 Omega Points",
-            effectDescription: "+1000% divine passive generation and ^100 Points also 1.1x Omega point gain",
-            done() { return player[this.layer].points.gte(25) },
-            unlocked() { return hasMilestone('o', 4) },
-        },
-
-        6: {
-            requirementDescription: "50 Omega Points",
-            effectDescription: "Keep Prestige and Rebirth Upgrades on omega reset, 5x Omega",
-            done() { return player[this.layer].points.gte(50) },
-            unlocked() { return hasMilestone('o', 5) },
-        },
-
-        7: {
-            requirementDescription: "80 Omega Points",
-            effectDescription: "x1e10000 Points",
-            done() { return player[this.layer].points.gte(80) },
-            unlocked() { return hasMilestone('o', 6) },
-        }
-    },
-
-    unlocked() { return player.d.points.gte("100") && hasMilestone('d', 9) }, // The layer is unlocked when the player reaches 1F100 points.
 })
