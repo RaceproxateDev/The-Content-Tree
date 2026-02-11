@@ -1,5 +1,5 @@
 let modInfo = {
-	name: "The Ultimate Prestige Tree",
+	name: "The Content Tree",
 	author: "RaceDev",
 	pointsName: "points",
 	modFiles: ["layers.js", "tree.js"],
@@ -12,18 +12,14 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.1",
-	name: "Final",
+	num: "0.0",
+	name: "Literally nothing",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
 	<h3>v0.0</h3><br>
 		- Added things.<br>
-		- Added stuff. <br>
-		<h3>v0.1</h3><br>
-		- Added Omega layer.<br>
-		- Added more milestones.<br>
-		- Added more upgrades.<br>`
+		- Added stuff.`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
 
@@ -46,29 +42,25 @@ function getPointGen() {
 		return new Decimal(0)
 
 	let gain = new Decimal(1)
-
-    if (hasUpgrade('p', 11)) gain = gain.times(2)
-	if (hasUpgrade('p', 12)) gain = gain.times(upgradeEffect('p', 12))
-	if (hasMilestone('p', 0)) gain = gain.times(10)
-	if (hasUpgrade('r', 11)) gain = gain.times(2)
-	if (hasUpgrade('r', 12)) gain = gain.times(upgradeEffect('r', 12))
-	if (hasUpgrade('r', 13)) gain = gain.pow(1.3)
-	if (hasUpgrade('r', 15)) gain = gain.times(upgradeEffect('r', 15))
-	if (hasUpgrade('p', 14)) gain = gain.times(10)
-	if (hasMilestone('r', 0)) gain = gain.pow(1.5)
-	if (hasMilestone('d', 0)) gain = gain.times(5)
-	if (hasMilestone('d', 1)) gain = gain.pow(1.5)
-	if (inChallenge('d', 11)) gain = gain.pow(0.01)
-	if (hasMilestone('d', 3)) gain = gain.pow(1.5)
-	if (hasMilestone('d', 5)) gain = gain.pow(2)
-	if (hasMilestone('d', 6)) gain = gain.pow(1.3)
-	if (hasMilestone('d', 7)) gain = gain.pow(10)
-	if (hasMilestone('d', 8)) gain = gain.pow(3)
-	if (hasUpgrade('d', 11)) gain = gain.tetrate(1.1)
-	if (hasUpgrade('d', 12)) gain = gain.times(upgradeEffect('d', 12))
-	if (hasMilestone('o', 2)) gain = gain.tetrate(1.5)
-	if (hasMilestone('o', 5)) gain = gain.pow(100)
-	if (hasMilestone('o', 7)) gain = gain.times(1e10000)
+	if (hasUpgrade("bp", 11)) gain = gain.add(1)
+	if (hasUpgrade("bp", 12)) gain = gain.add(0.5)
+	if (hasUpgrade("bp", 13)) gain = gain.times(2)
+	if (hasUpgrade("bp", 14)) gain = gain.times(upgradeEffect("bp", 14))
+	if (hasUpgrade("bp", 17)) gain = gain.times(3)
+	if (hasUpgrade("bp", 18)) gain = gain.times(upgradeEffect("bp", 18))
+	if (hasUpgrade("bp", 19)) gain = gain.times(4)
+	if (hasUpgrade("bp", 21)) gain = gain.times(upgradeEffect("bp", 21))
+	if (hasUpgrade("bp", 22)) gain = gain.times(10)
+	if (hasUpgrade("br", 11)) gain = gain.times(3)
+	if (hasUpgrade("br", 13)) gain = gain.times(5)
+	if (hasUpgrade("br", 14)) gain = gain.times(upgradeEffect("br", 14))
+	if (hasUpgrade("br", 16)) gain = gain.times(6)
+	if (hasMilestone("a", 0)) gain = gain.times(3)
+	if (hasMilestone("a", 3)) gain = gain.pow(1.01)
+	if (hasMilestone("a", 5)) gain = gain.pow(1.1)
+	if (hasMilestone("a", 6)) gain = gain.pow(1.1)
+	if (inChallenge("a", 11)) gain = gain.div(6)
+	if (hasChallenge("a", 11)) gain = gain.times(10)
 	
 	return gain
 }
@@ -79,13 +71,15 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"<br><h3> Endgame: 80 Omega points </h3>",
+	"<br> <h3> Endgame: 1 Ultra Point </h3>"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.o.points.gte(80)
+	return player.up.points.gte(1)
 }
+
+
 
 // Less important things beyond this point!
 
