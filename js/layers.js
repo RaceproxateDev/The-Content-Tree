@@ -5,8 +5,10 @@ addLayer("ach", {
     }},
 
     color: "#fff700",                       // The color for this layer, which affects many elements.
-    resource: "???",            // The name of this layer's main prestige resource.
+    resource: "achievements",            // The name of this layer's main prestige resource.
     row: "side",                                 // The row this layer is on (0 is the first row).
+    symbol: "Ach",
+    position: 0,
 
     baseResource: "points",                 // The name of the resource your prestige gain is based on.
     baseAmount() { return player.points },  // A function to return the current amount of baseResource.
@@ -14,11 +16,11 @@ addLayer("ach", {
     requires: new Decimal(10),              // The amount of the base needed to  gain 1 of the prestige currency.
                                             // Also the amount required to unlock the layer.
 
-    type: "normal",                         // Determines the formula used for calculating prestige currency.
+    type: "none",                         // Determines the formula used for calculating prestige currency.
     exponent: 0.5,                          // "normal" prestige gain is (currency^exponent).
 
     gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
-        return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+        return new Decimal(1)
     },
     gainExp() {             
         let exp = new Decimal(1)                // Returns the exponent to your gain of the prestige resource.
@@ -26,105 +28,109 @@ addLayer("ach", {
         return exp
     },
 
-    layerShown() { return true },          // Returns a bool for if this layer's node should be visible in the tree.
-
-    tabFormat: {
-        "Achievements":
-        {
-            content: ["achievements"],
-        }
-    },
+    tooltip() { return "Achievements" },
 
     achievements: {
+        rows: 20,
+        cols: 6,
+
         11: {
             name: "small",
             done() { return player.points.gte(10) },
             tooltip: "Reach 10 points.",
-            unlocked() { return true }, 
+            unlocked() { return true },
         },
 
         12: {
             name: "3 digits",
-            done() { return player.points.gte(100) && hasAchievement("ach", 11) },
+            done() { return player.points.gte(100) },
             tooltip: "Reach 100 points.",
-            unlocked() { return hasAchievement("ach", 11) },
+            unlocked() { return true },
         },
 
         13: {
             name: "Reset?",
-            done() { return player.bp.points.gte(1) && hasAchievement("ach", 12) },
+            done() { return player.bp.points.gte(1) },
             tooltip: "Reach 1 basic prestige point.",
-            unlocked() { return hasAchievement("ach", 12) },
+            unlocked() { return true },
         },
 
         14: {
             name: "Points now are a bit useful?",
-            done() { return hasUpgrade("bp", 14) && hasAchievement("ach", 13) },
+            done() { return hasUpgrade("bp", 14) },
             tooltip: "Buy basic prestige upgrade 4",
-            unlocked() { return hasAchievement("ach", 13) },
+            unlocked() { return true },
         },
 
         15: {
             name: "Very, very Useful",
-            done() { return hasUpgrade("bp", 16) && hasAchievement("ach", 14) },
+            done() { return hasUpgrade("bp", 16) },
             tooltip: "Buy basic prestige upgrade 6",
-            unlocked() { return hasAchievement("ach", 14) },
+            unlocked() { return true },
         },
 
         16: {
             name: "Closer...",
-            done() { return player.points.gte(1000) && hasAchievement("ach", 15) },
+            done() { return player.points.gte(1000) },
             tooltip: "Get 1000 Points",
-            unlocked() { return hasAchievement("ach", 15) }
+            unlocked() { return true },
         },
 
         17: {
             name: "Upgraded Points",
-            done() { return hasUpgrade("bp", 18) && hasAchievement("ach", 16) },
+            done() { return hasUpgrade("bp", 18) },
             tooltip: "Buy Basic Prestige Upgrade 8",
-            unlocked() { return hasAchievement("ach", 16) }
+            unlocked() { return true },
         },
 
         18: {
             name: "New layer!",
             done() { return hasMilestone("pr", 0) },
             tooltip: "Unlock Basic Rebirth",
-            unlocked() { return hasAchievement("ach", 17) }
+            unlocked() { return true },
         },
 
         19: {
             name: "Two of them",
             done() { return player.pr.points.gte(2) },
             tooltip: "Get 2 progression points",
-            unlocked() { return hasAchievement("ach", 18) }
+            unlocked() { return true },
         },
 
         21: {
             name: "is it big?",
             done() { return player.points.gte(1e9) },
             tooltip: "get 1e9 points",
-            unlocked() { return hasAchievement("ach", 19) }
+            unlocked() { return true },
         },
 
         22: {
             name: "Ascensions?",
             done() { return player.pr.points.gte(3) },
             tooltip: "get 3 progression points",
-            unlocked() { return hasAchievement("ach", 21) }
+            unlocked() { return true },
         },
 
         23: {
             name: "Getting there",
             done() { return player.a.points.gte(5) },
             tooltip: "Get 5 Ascension points",
-            unlocked() { return hasAchievement("ach", 22) }
+            unlocked() { return true },
         },
 
         24: {
             name: "Ultra now",
             done() { return player.up.points.gte(1) },
             tooltip: "Get 1 Ultra Point",
-            unlocked() { return hasAchievement("ach", 23) }
+            unlocked() { return true },
+        },
+    },
+
+    layerShown() { return true },
+
+    tabFormat: {
+        "Achievements": {
+            content: ["achievements"]
         }
     }
 })
@@ -161,11 +167,20 @@ addLayer("pr", {
 
         2: {
             requirementDescription: "4 progression points",
-            effectDescription: "Unlock Ultra Points",
+            effectDescription: "Unlock Ultra Points, also Progression resets nothing",
             done() { return player[this.layer].points.gte(4) },
             unlocked() { return hasMilestone("pr", 1) }
         }
-    }
+    },
+
+    infoboxes: {
+        ResetInfo: {
+            title: "Progression",
+            body: "Resets EVERYTHING (excluding achievements). <br><br> This is the main reset layer for unlocks and automation."
+        }
+    },
+
+    resetsNothing() { return hasMilestone("pr", 2) },
 })                            
 
 addLayer("bp", {
@@ -315,7 +330,16 @@ addLayer("bp", {
         let p = new Decimal(0)
         if (hasMilestone("a", 2)) p = p.add(1)
         return p
-    }
+    },
+
+    hotkeys: [
+        {
+            key: "p",
+            description: "press p key to do basic prestige",
+            onPress() { if (player.bp.unlocked) doReset("bp") },
+            unlocked() { return true }
+        }
+    ],
 })
 
 addLayer("br", {
@@ -437,7 +461,16 @@ addLayer("br", {
         let p = new Decimal(0)
         if (hasMilestone("a", 5)) p = p.add(1)
         return p
-    }
+    },
+
+    hotkeys: [
+        {
+            key: "r",
+            description: "press r key to do basic rebirth",
+            onPress() { if (player.br.unlocked) doReset("br") },
+            unlocked() { return true }
+        }
+    ],
 })
 
 addLayer("a", {
@@ -563,6 +596,15 @@ addLayer("a", {
 
     unlocked() { return hasMilestone("pr", 1) },
 
+    hotkeys: [
+        {
+            key: "a",
+            description: "press a key to ascend",
+            onPress() { if (player.a.unlocked) doReset("a") },
+            unlocked() { return true }
+        }
+    ],
+
 })
 
 addLayer("up", {
@@ -600,4 +642,13 @@ addLayer("up", {
     upgrades: {
         // Look in the upgrades docs to see what goes here!
     },
+
+    hotkeys: [
+        {
+            key: "u",
+            description: "press u key to do ultra reset",
+            onPress() { if (player.up.unlocked) doReset("up") },
+            unlocked() { return true }
+        }
+    ],
 })
