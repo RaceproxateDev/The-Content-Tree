@@ -21,7 +21,7 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Added things.<br>
 		- Added stuff.
 		<br><h3>v0.1</h3><br>
-		- Added some QoL features (like hotkeys)
+		- Added some QoL features (like hotkeys) <br>
 		- fixed achievements not displaying when not completed
 		`
 
