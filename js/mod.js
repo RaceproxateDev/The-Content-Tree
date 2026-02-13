@@ -12,8 +12,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.1",
-	name: "QoL improvements",
+	num: "0.2",
+	name: "The Ultra Update",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
@@ -22,7 +22,12 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Added stuff.
 		<br><h3>v0.1</h3><br>
 		- Added some QoL features (like hotkeys) <br>
-		- fixed achievements not displaying when not completed
+		- fixed achievements not displaying when not completed <br>
+		<h3> v0.2 </h3><br>
+		- Added content on Ultra Points <br>
+		- Added Ultra Essence <br>
+		- Ultra Upgrades <br>
+		- Ultra Essence Milestones
 		`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
@@ -65,6 +70,13 @@ function getPointGen() {
 	if (hasMilestone("a", 6)) gain = gain.pow(1.1)
 	if (inChallenge("a", 11)) gain = gain.div(6)
 	if (hasChallenge("a", 11)) gain = gain.times(10)
+	if (hasUpgrade("up", 14)) gain = gain.times(10)
+	if (hasUpgrade("up", 15)) gain = gain.times(5)
+	if (hasMilestone("up", 11)) gain = gain.pow(1.02)
+	if (hasMilestone("up", 13)) gain = gain.times(5)
+	if (hasMilestone("up", 14)) gain = gain.pow(1.01)
+	if (hasUpgrade("up", 24)) gain = gain.times(upgradeEffect("up", 24))
+	if (hasUpgrade("up", 26)) gain = gain.pow(1.02)
 	
 	return gain
 }
@@ -75,12 +87,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"<br> <h3> Endgame: 1 Ultra Point </h3>"
+	"<br> <h3> Endgame: 5 Progression Points </h3>"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.up.points.gte(1)
+	return player.pr.points.gte(5)
 }
 
 
