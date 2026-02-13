@@ -32,7 +32,7 @@ addLayer("ach", {
 
     achievements: {
         rows: 20,
-        cols: 6,
+        cols: 9,
 
         11: {
             name: "small",
