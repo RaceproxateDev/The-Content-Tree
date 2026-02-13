@@ -254,7 +254,7 @@ addLayer("bp", {
         },
 
         15: {
-            title: "Boosting Basic Points",
+            title: "Boosting Basic Prestige Points",
             description: "1.5x basic prestige gain",
             cost: new Decimal(20),
             unlocked() { return hasUpgrade("bp", 14) },
