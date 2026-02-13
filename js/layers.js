@@ -124,6 +124,36 @@ addLayer("ach", {
             tooltip: "Get 1 Ultra Point",
             unlocked() { return true },
         },
+
+        25: {
+            name: "Cool",
+            done() { return hasUpgrade("up", 11) },
+            tooltip: "Buy Ultra Points upgrade 1",
+        },
+
+        26: {
+            name: "that's... new",
+            done() { return hasUpgrade("up", 16) },
+            tooltip: "unlock Ultra Essence",
+        },
+
+        27: {
+            name: "very esential",
+            done() { return player.up.ultraEssence.gte(100000) },
+            tooltip: "Get 100,000 Ultra Essence",
+        },
+
+        28: {
+            name: "A lot of ultras",
+            done() { return player.up.points.gte(100) },
+            tooltip: "Get 100 Ultra Points",
+        },
+
+        29: {
+            name: "Infinity",
+            done() { return player.points.gte(1.79e308) },
+            tooltip: "Reach 1.79e308 points",
+        }
     },
 
     layerShown() { return true },
@@ -211,6 +241,7 @@ addLayer("bp", {
         if (hasUpgrade("br", 12)) mult = mult.times(4)
         if (hasMilestone("a", 0)) mult = mult.times(3)
         if (hasMilestone("a", 6)) mult = mult.times(8)
+        if (hasUpgrade("up", 14)) mult = mult.times(10)
         return mult
     },
     gainExp() {                             // Returns your exponent to your gain of the prestige resource.
@@ -375,6 +406,8 @@ addLayer("br", {
         if (hasMilestone("a", 5)) mult = mult.pow(1.1)
         if (inChallenge("a", 12)) mult = mult.times(0)
         if (hasChallenge("a", 12)) mult = mult.pow(1.05)
+        if (hasUpgrade("up", 14)) mult = mult.times(10)
+        if (hasMilestone("up", 13)) mult = mult.times(10)
         return mult
     },
 
@@ -471,6 +504,8 @@ addLayer("br", {
             unlocked() { return true }
         }
     ],
+
+    autoUpgrade() { return hasUpgrade("up", 11) },
 })
 
 addLayer("a", {
@@ -605,12 +640,16 @@ addLayer("a", {
         }
     ],
 
+    autoPrestige() { return hasUpgrade("up", 12) },
+    resetsNothing() { return hasUpgrade("up", 13) },
+
 })
 
 addLayer("up", {
     startData() { return {                  // startData is a function that returns default data for a layer. 
         unlocked: false,                     // You can add more variables here to add them to your layer.
-        points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+        points: new Decimal(0),
+        ultraEssence: new Decimal(0),
     }},
 
     color: "#ffbb00",                       // The color for this layer, which affects many elements.
@@ -627,10 +666,13 @@ addLayer("up", {
                                             // Also the amount required to unlock the layer.
 
     type: "normal",                         // Determines the formula used for calculating prestige currency.
-    exponent: 0.1,                          // "normal" prestige gain is (currency^exponent).
+    exponent: 0.01,                          // "normal" prestige gain is (currency^exponent).
 
     gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
-        return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+        let mult = new Decimal(1)               // Factor in any bonuses multiplying gain here.
+        if (hasUpgrade("up", 23)) mult = mult.times(1.5)
+        if (hasUpgrade("up", 25)) mult = mult.times(5)
+        return mult
     },
     gainExp() {                             // Returns the exponent to your gain of the prestige resource.
         return new Decimal(1)
@@ -640,7 +682,137 @@ addLayer("up", {
     layerShown() { return hasMilestone("pr", 2) || player.up.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
 
     upgrades: {
-        // Look in the upgrades docs to see what goes here!
+        11: {
+            title: "Automation I",
+            description: "Autobuy basic Rebirth upgrades",
+            cost: new Decimal(1),
+        },
+
+        12: {
+            title: "Automation II",
+            description: "Automatically gain Ascension Points",
+            cost: new Decimal(1),
+            unlocked() { return hasUpgrade("up", 11) },
+        },
+
+        13: {
+            title: "No more problems",
+            description: "No longer reset anything on ascend",
+            cost: new Decimal(2),
+            unlocked() { return hasUpgrade("up", 12) },
+        },
+
+        14: {
+            title: "boosting time",
+            description: "10x Basic Rebirth -> Points",
+            cost: new Decimal(2),
+            unlocked() { return hasUpgrade("up", 13) },
+        },
+
+        15: {
+            title: "Super points boost",
+            description: "5x Points",
+            cost: new Decimal(3),
+            unlocked() { return hasUpgrade("up", 14) },
+        },
+
+        16: {
+            title: "Time for new things",
+            description: "Unlock Ultra essence",
+            cost: new Decimal(5),
+            unlocked() { return hasUpgrade("up", 15) },
+        },
+
+        17: {
+            title: "Boosting Ultra Essence I",
+            description: "2x Ultra Essence",
+            currencyDisplayName: "Ultra Essence",
+            currencyInternalName: "ultraEssence",
+            currencyLayer: "up",
+            cost: new Decimal(10),
+        },
+
+        18: {
+            title: "Another Ultra boost",
+            description: "3x Ultra Essence",
+            currencyDisplayName: "Ultra Essence",
+            currencyInternalName: "ultraEssence",
+            currencyLayer: "up",
+            cost: new Decimal(25),
+            unlocked() { return hasUpgrade("up", 17) },
+        },
+
+        19: {
+            title: "New Thing II",
+            description: "Unlock Ultra Milestones",
+            cost: new Decimal(10),
+            unlocked() { return hasUpgrade("up", 18) },
+        },
+
+        21: {
+            title: "Synergism",
+            description: "Ultra Essence boosts itself",
+            currencyDisplayName: "Ultra Essence",
+            currencyInternalName: "ultraEssence",
+            currencyLayer: "up",
+            cost: new Decimal(100000),
+            unlocked() { return hasMilestone("up", 16) },
+
+            effect() {
+                return player[this.layer].ultraEssence.add(1).pow(0.15)
+            },
+
+            effectDescription() { return format(upgradeEffect(this.layer, this.id))+"x" },
+        },
+
+        22: {
+            title: "Ultra good",
+            description: "Ultra Points boost Ultra Essence",
+            cost: new Decimal(35),
+            unlocked() { return hasUpgrade("up", 21) },
+
+            effect() {
+                return player[this.layer].points.add(1).pow(0.5)
+            },
+
+            effectDisplay() {
+                return format(upgradeEffect(this.layer, this.id))+"x"
+            },
+        },
+
+        23: {
+            title: "Ultra Boost II",
+            description: "1.5x Ultra Points",
+            cost: new Decimal(40),
+            unlocked() { return hasUpgrade("up", 22) }
+        },
+
+        24: {
+            title: "Better Points",
+            description: "Ultra Points boost Points",
+            cost: new Decimal(100),
+            unlocked() { return hasUpgrade("up", 23) },
+
+            effect() {
+                return player[this.layer].points.add(1).pow(0.6)
+            },
+
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+        },
+
+        25: {
+            title: "Better Ultra",
+            description: "5x Ultra Points!",
+            cost: new Decimal(125),
+            unlocked() { return hasUpgrade("up", 24) }, 
+        },
+
+        26: {
+            title: "to infinity!",
+            description: "^1.02 Points",
+            cost: new Decimal(800),
+            unlocked() { return hasUpgrade("up", 25) },
+        }
     },
 
     hotkeys: [
@@ -651,4 +823,89 @@ addLayer("up", {
             unlocked() { return true }
         }
     ],
+
+    tabFormat: {
+        "Main": {
+            content: ["main-display","prestige-button","blank",
+                ["display-text", function() { return "You have " + format(player.points) + " Points"}], "blank",
+                ["display-text", () => `You have <h2 style="color: orange; text-shadow: 0px 0px 10px orange">${format(player.up.ultraEssence)}</h2> Ultra Essence`,
+                    {"color": "white", "font-size": "20px"}
+                ], "blank",
+                "upgrades",
+            ]
+        },
+
+        "Milestones": {
+            content: [ ["display-text", () => `You have <h2 style="color: orange; text-shadow: 0px 0px 10px orange">${format(player.up.ultraEssence)}</h2> Ultra Essence` ,
+                    {"color": "white", "font-size": "20px"}
+                ], "blank", "milestones"
+            ],
+
+            unlocked() { return hasUpgrade("up", 19) }
+        },
+    },
+
+    update(diff) {
+        if (hasUpgrade("up", 16)) {
+            let ultraEssenceMult = new Decimal(1).times(diff)
+            ultraEssenceMult = ultraEssenceMult.times(tmp.up.GetUltraEssenceMult)
+            player.up.ultraEssence = player.up.ultraEssence.add(ultraEssenceMult)
+        }
+    },
+
+    GetUltraEssenceMult() {
+        let UEmult = new Decimal(1)
+        if (hasUpgrade("up", 17)) UEmult = UEmult.times(2)
+        if (hasUpgrade("up", 18)) UEmult = UEmult.times(3)
+        if (hasMilestone("up", 11)) UEmult = UEmult.times(3)
+        if (hasMilestone("up", 12)) UEmult = UEmult.times(10)
+        if (hasMilestone("up", 14)) UEmult = UEmult.times(2)
+        if (hasMilestone("up", 15)) UEmult = UEmult.times(5)
+        if (hasUpgrade("up", 21)) UEmult = UEmult.times(upgradeEffect("up", 21))
+        if (hasUpgrade("up", 22)) UEmult = UEmult.times(upgradeEffect("up", 22))
+        return UEmult
+    },
+
+    milestones: {
+        11: {
+            requirementDescription: "100 Ultra Essence",
+            effectDescription: "^1.02 Points and 3x Ultra Essence",
+            done() { return player.up.ultraEssence.gte(100) && hasUpgrade("up", 19) }
+        },
+
+        12: {
+            requirementDescription: "300 Ultra Essence",
+            effectDescription: "10x Ultra Essence",
+            done() { return player.up.ultraEssence.gte(300) && hasMilestone("up", 11) },
+            unlocked() { return hasMilestone("up", 11) },
+        },
+
+        13: {
+            requirementDescription: "2000 Ultra Essence",
+            effectDescription: "10x Basic Rebirth and 5x Points",
+            done() { return player.up.ultraEssence.gte(2000) && hasMilestone("up", 12) },
+            unlocked() { return hasMilestone("up", 12) },
+        },
+
+        14: {
+            requirementDescription: "10000 Ultra Essence",
+            effectDescription: "2x Ultra Essence, ^1.01 Points",
+            done() { return player.up.ultraEssence.gte(10000) && hasMilestone("up", 13) },
+            unlocked() { return hasMilestone("up", 13) },
+        },
+
+        15: {
+            requirementDescription: "25000 Ultra Essence",
+            effectDescription: "5x Ultra Essence",
+            done() { return player.up.ultraEssence.gte(25000) && hasMilestone("up", 14) },
+            unlocked() { return hasMilestone("up", 14) },
+        },
+
+        16: {
+            requirementDescription: "80000 Ultra Essence",
+            effectDescription: "Unlock More Ultra Essence Upgrades",
+            done() { return player.up.ultraEssence.gte(80000) && hasMilestone("up", 15) },
+            unlocked() { return hasMilestone("up", 15) },
+        }
+    },
 })
