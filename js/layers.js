@@ -1069,5 +1069,14 @@ addLayer("inf", {
                 return format(upgradeEffect(this.layer, this.id))+"x"
             },
         }
-    }
+    },
+
+    hotkeys: [
+        {
+            key: "i",
+            description: "press i key to do infinity reset",
+            onPress() { if (player.inf.unlocked) doReset("inf") },
+            unlocked() { return true }
+        }
+    ],
 })
