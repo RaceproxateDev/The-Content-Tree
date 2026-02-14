@@ -27,7 +27,10 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Added content on Ultra Points <br>
 		- Added Ultra Essence <br>
 		- Ultra Upgrades <br>
-		- Ultra Essence Milestones
+		- Ultra Essence Milestones <br>
+		<h3> v0.3: final </h3><br>
+		- Added an ending <br>
+		- More things.
 		`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
@@ -77,6 +80,10 @@ function getPointGen() {
 	if (hasMilestone("up", 14)) gain = gain.pow(1.01)
 	if (hasUpgrade("up", 24)) gain = gain.times(upgradeEffect("up", 24))
 	if (hasUpgrade("up", 26)) gain = gain.pow(1.02)
+	if (hasMilestone("inf", 1)) gain = gain.pow(1.05)
+	if (hasMilestone("inf", 3)) gain = gain.pow(1.11)
+	if (hasUpgrade("inf", 11)) gain = gain.times(upgradeEffect("inf", 11))
+	if (hasUpgrade("inf", 12)) gain = gain.times(upgradeEffect("inf", 12))
 	
 	return gain
 }
@@ -87,12 +94,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"<br> <h3> Endgame: 5 Progression Points </h3>"
+	"<br> <h3> Endgame: 1 Loop </h3>"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.pr.points.gte(5)
+	return player.l.points.gte(1)
 }
 
 
