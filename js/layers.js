@@ -153,6 +153,12 @@ addLayer("ach", {
             name: "Infinity",
             done() { return player.points.gte(1.79e308) },
             tooltip: "Reach 1.79e308 points",
+        },
+
+        31: {
+            name: "new Reset?",
+            done() { return player.inf.points.gte(1) },
+            tooltip: "Get 1 infinity Point",
         }
     },
 
@@ -200,6 +206,13 @@ addLayer("pr", {
             effectDescription: "Unlock Ultra Points, also Progression resets nothing",
             done() { return player[this.layer].points.gte(4) },
             unlocked() { return hasMilestone("pr", 1) }
+        },
+
+        3: {
+            requirementDescription: "50 progression points",
+            effectDescription: "Passively gain Progression Points (100%)",
+            done() { return player[this.layer].points.gte(50) },
+            unlocked() { return hasMilestone("pr", 2) }
         }
     },
 
@@ -211,6 +224,11 @@ addLayer("pr", {
     },
 
     resetsNothing() { return hasMilestone("pr", 2) },
+    passiveGeneration() {
+        let p = new Decimal(0)
+        if (hasMilestone("pr", 3)) p = p.add(1)
+        return p
+    }
 })                            
 
 addLayer("bp", {
@@ -242,6 +260,8 @@ addLayer("bp", {
         if (hasMilestone("a", 0)) mult = mult.times(3)
         if (hasMilestone("a", 6)) mult = mult.times(8)
         if (hasUpgrade("up", 14)) mult = mult.times(10)
+        if (hasMilestone("inf", 0)) mult = mult.times(10)
+        if (hasMilestone("inf", 1)) mult = mult.pow(1.05)
         return mult
     },
     gainExp() {                             // Returns your exponent to your gain of the prestige resource.
@@ -355,11 +375,12 @@ addLayer("bp", {
         }
     },
 
-    autoUpgrade() { return hasMilestone("a", 1) },
+    autoUpgrade() { return hasMilestone("a", 1) || hasMilestone("inf", 4) },
 
     passiveGeneration() {
         let p = new Decimal(0)
         if (hasMilestone("a", 2)) p = p.add(1)
+        if (hasMilestone("inf", 2)) p = p.add(1)
         return p
     },
 
@@ -408,6 +429,8 @@ addLayer("br", {
         if (hasChallenge("a", 12)) mult = mult.pow(1.05)
         if (hasUpgrade("up", 14)) mult = mult.times(10)
         if (hasMilestone("up", 13)) mult = mult.times(10)
+        if (hasMilestone("inf", 0)) mult = mult.times(10)
+        if (hasMilestone("inf", 1)) mult = mult.pow(1.05)
         return mult
     },
 
@@ -418,7 +441,7 @@ addLayer("br", {
     },
 
     unlocked() { return hasMilestone("pr", 0) },
-    layerShown() { return hasMilestone("pr", 0) || player.br.unlocked },
+    layerShown() { return hasMilestone("pr", 0) || player.br.unlocked && player.pr.points.gte(1) },
 
     upgrades: {
         11: {
@@ -493,6 +516,7 @@ addLayer("br", {
     passiveGeneration() {
         let p = new Decimal(0)
         if (hasMilestone("a", 5)) p = p.add(1)
+        if (hasMilestone("inf", 2)) p = p.add(1)
         return p
     },
 
@@ -505,7 +529,7 @@ addLayer("br", {
         }
     ],
 
-    autoUpgrade() { return hasUpgrade("up", 11) },
+    autoUpgrade() { return hasUpgrade("up", 11) || hasMilestone("inf", 4) },
 })
 
 addLayer("a", {
@@ -536,7 +560,7 @@ addLayer("a", {
         return new Decimal(1)
     },
 
-    layerShown() { return hasMilestone("pr", 1) || player.a.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+    layerShown() { return hasMilestone("pr", 1) || player.a.unlocked && player.pr.points.gte(3) },          // Returns a bool for if this layer's node should be visible in the tree.
 
     milestones: {
         0: {
@@ -640,7 +664,7 @@ addLayer("a", {
         }
     ],
 
-    autoPrestige() { return hasUpgrade("up", 12) },
+    autoPrestige() { return hasUpgrade("up", 12) || hasMilestone("inf", 4) },
     resetsNothing() { return hasUpgrade("up", 13) },
 
 })
@@ -672,6 +696,7 @@ addLayer("up", {
         let mult = new Decimal(1)               // Factor in any bonuses multiplying gain here.
         if (hasUpgrade("up", 23)) mult = mult.times(1.5)
         if (hasUpgrade("up", 25)) mult = mult.times(5)
+        if (hasMilestone("inf", 0)) mult = mult.times(10)
         return mult
     },
     gainExp() {                             // Returns the exponent to your gain of the prestige resource.
@@ -679,7 +704,7 @@ addLayer("up", {
     },
 
     unlocked() { return hasMilestone("pr", 2) },
-    layerShown() { return hasMilestone("pr", 2) || player.up.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+    layerShown() { return hasMilestone("pr", 2) || player.up.unlocked && player.pr.points.gte(4) },          // Returns a bool for if this layer's node should be visible in the tree.
 
     upgrades: {
         11: {
@@ -863,6 +888,8 @@ addLayer("up", {
         if (hasMilestone("up", 15)) UEmult = UEmult.times(5)
         if (hasUpgrade("up", 21)) UEmult = UEmult.times(upgradeEffect("up", 21))
         if (hasUpgrade("up", 22)) UEmult = UEmult.times(upgradeEffect("up", 22))
+        if (hasMilestone("inf", 0)) UEmult = UEmult.times(10)
+        if (hasMilestone("inf", 5)) UEmult = UEmult.pow(1.1)
         return UEmult
     },
 
@@ -908,4 +935,139 @@ addLayer("up", {
             unlocked() { return hasMilestone("up", 15) },
         }
     },
+
+    autoUpgrade() {
+        return hasMilestone("inf", 4)
+    },
+
+    passiveGeneration() {
+        let p = new Decimal(0)
+        if (hasMilestone("inf", 5)) p = p.add(1)
+        return p
+    }
+})
+
+addLayer("inf", {
+    startData() { return {                  // startData is a function that returns default data for a layer. 
+        unlocked: false,                     // You can add more variables here to add them to your layer.
+        points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+    }},
+
+    color: "#ff9900",                       // The color for this layer, which affects many elements.
+    resource: "infinity points",            // The name of this layer's main prestige resource.
+    row: 3,                                 // The row this layer is on (0 is the first row).
+
+    baseResource: "points",                 // The name of the resource your prestige gain is based on.
+    baseAmount() { return player.points },  // A function to return the current amount of baseResource.
+
+    requires: new Decimal(1.79e308),              // The amount of the base needed to  gain 1 of the prestige currency.
+                                            // Also the amount required to unlock the layer.
+
+    type: "normal",                         // Determines the formula used for calculating prestige currency.
+    exponent: 0.001,                          // "normal" prestige gain is (currency^exponent).
+
+    gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+        let mult = new Decimal(1)               // Factor in any bonuses multiplying gain here.
+        if (hasMilestone("inf", 4)) mult = mult.times(5)
+        if (hasMilestone("inf", 5)) mult = mult.pow(1.5)
+        return mult
+    },
+
+    gainExp() {                             // Returns the exponent to your gain of the prestige resource.
+        return new Decimal(1)
+    },
+
+    layerShown() { return player.points.gte("1.79e308") || player.inf.unlocked && player.pr.points.gte(4) },          // Returns a bool for if this layer's node should be visible in the tree.
+    unlocked() { return player.points.gte("1.79e308") },
+
+    milestones: {
+        0: {
+            requirementDescription: "1 Infinity Point",
+            effectDescription: "10x Basic Prestige -> Ultra Essence",
+            done() { return player.inf.points.gte(1) },
+        },
+
+        1: {
+            requirementDescription: "2 infinity Points",
+            effectDescription: "^1.05 Points, Basic Prestige and Basic Rebirth",
+            done() { return player.inf.points.gte(2) },
+        },
+
+        2: {
+            requirementDescription: "3 infinity Points",
+            effectDescription: "+100% passive generation on basic prestige and basic Rebirth",
+            done() { return player.inf.points.gte(3) },
+            unlocked() { return hasMilestone("inf", 1) },
+        },
+
+        3: {
+            requirementDescription: "1e12500 infinity points",
+            effectDescription: "^1.11 Points",
+            done() { return player.inf.points.gte("1e12500") },
+            unlocked() { return hasMilestone("inf", 2) },
+        },
+
+        4: {
+            requirementDescription: "1e18000 infinity points",
+            effectDescription: "Automate everything also 5x infinity Points",
+            done() { return player.inf.points.gte("1e18000") },
+            unlocked() { return hasMilestone("inf", 3) },
+        },
+
+        5: {
+            requirementDescription: "1e18750 infinity points",
+            effectDescription: "^1.5 infinity Points, passively generate 100% of Ultra Points per second and ^1.1 Ultra Essence, also unlock Infinity upgrades",
+            done() { return player.inf.points.gte("1e18750") },
+            unlocked() { return hasMilestone("inf", 4) },
+        }
+    },
+
+    branches: ["a", "up"],
+
+    tabFormat: {
+        "Main": {
+            content: [
+                "main-display", "prestige-button", ["display-text",
+                    function() { return `You have ${format(player.points)} Points` }
+                ], "blank", "milestones"
+            ]
+        },
+
+        "Upgrades": {
+            content: [
+                "main-display","blank","upgrades"
+            ],
+            unlocked() { return hasMilestone("inf", 5) }
+        }
+    },
+
+    upgrades: {
+        11: {
+            title: "Lets boost a lil",
+            description: "infinity points boost Points",
+            cost: new Decimal("1e18750"),
+            unlocked() { return hasMilestone("inf", 5) },
+
+            effect() { 
+                return player[this.layer].points.add(1).pow(0.8)
+            },
+
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" },
+        },
+
+        12: {
+            title: "now even better",
+            description: "Points boost themselves even better!",
+            cost: new Decimal("1e18800"),
+            unlocked() { return hasUpgrade("inf", 11) },
+
+            effect() {
+                return player.points.add(1).pow(0.65)
+            },
+
+            effectDisplay() {
+                return format(upgradeEffect(this.layer, this.id))+"x"
+            },
+        }
+    }
 })
