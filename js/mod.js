@@ -12,8 +12,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.2",
-	name: "The Ultra Update",
+	num: "0.4",
+	name: "QoL",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
@@ -30,7 +30,9 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Ultra Essence Milestones <br>
 		<h3> v0.3: final </h3><br>
 		- Added an ending <br>
-		- More things.
+		- More things. <br>
+		<h3> v0.31 </h3> <br>
+		- Added 2 boosts to Progression
 		`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
@@ -54,6 +56,7 @@ function getPointGen() {
 		return new Decimal(0)
 
 	let gain = new Decimal(1)
+	if (hasMilestone("pr", 0)) gain = gain.times(1.5)
 	if (hasUpgrade("bp", 11)) gain = gain.add(1)
 	if (hasUpgrade("bp", 12)) gain = gain.add(0.5)
 	if (hasUpgrade("bp", 13)) gain = gain.times(2)
