@@ -190,13 +190,13 @@ addLayer("pr", {
     milestones: {
         0: {
             requirementDescription: "1 progression point",
-            effectDescription: "Unlock basic Rebirth",
+            effectDescription: "Unlock basic Rebirth and 1.5x Points",
             done() { return player[this.layer].points.gte(1) },
         },
 
         1: {
             requirementDescription: "3 progression points",
-            effectDescription: "Unlock Ascensions",
+            effectDescription: "Unlock Ascensions and 1.5x Basic Prestige",
             done() { return player[this.layer].points.gte(3) },
             unlocked() { return hasMilestone("pr", 0) }
         },
@@ -253,6 +253,7 @@ addLayer("bp", {
 
     gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
         let mult = new Decimal(1) 
+        if (hasMilestone("pr", 1)) mult = mult.times(1.5)
         if (hasUpgrade("bp", 15)) mult = mult.times(1.5)
         if (hasUpgrade("bp", 16)) mult = mult.times(upgradeEffect("bp", 16))
         if (hasUpgrade("bp", 19)) mult = mult.times(3)
